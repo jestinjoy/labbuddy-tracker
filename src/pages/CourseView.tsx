@@ -5,6 +5,7 @@ import { ExperimentStatus, nextStatus, StatusEntry, Student, Experiment } from '
 import { StatusCell } from '@/components/StatusCell';
 import { exportPDF, exportExcel } from '@/lib/export';
 import { ArrowLeft, FileDown, FileSpreadsheet, Trash2, Plus, UserPlus, FlaskConical, Settings } from 'lucide-react';
+import { BulkStudentUpload } from '@/components/BulkStudentUpload';
 import { v4 as uuid } from 'uuid';
 
 export default function CourseView() {
