@@ -83,9 +83,12 @@ export default function CreateCourse() {
 
       {/* Students */}
       <div className="mb-8">
-        <h2 className="status-label text-muted-foreground mb-3 flex items-center gap-2">
-          <UserPlus size={12} /> Students ({students.length})
-        </h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="status-label text-muted-foreground flex items-center gap-2">
+            <UserPlus size={12} /> Students ({students.length})
+          </h2>
+          <BulkStudentUpload onStudentsAdded={(newStudents) => setStudents(prev => [...prev, ...newStudents])} />
+        </div>
         <div className="flex gap-2 mb-3">
           <input
             value={studentRoll}
