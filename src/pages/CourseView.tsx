@@ -31,8 +31,8 @@ export default function CourseView() {
     const total = course.students.length * course.experiments.length;
     let completed = 0, submitted = 0;
     statusMap.forEach(v => {
-      if (v === 'completed') completed++;
-      if (v === 'submitted') submitted++;
+      if (v.status === 'completed') completed++;
+      if (v.status === 'submitted') submitted++;
     });
     return { total, pending: total - completed - submitted, completed, submitted };
   }, [statusMap, course]);
