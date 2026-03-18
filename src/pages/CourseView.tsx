@@ -47,19 +47,21 @@ export default function CourseView() {
 
   const handleToggle = (studentId: string, experimentId: string) => {
     const key = `${studentId}_${experimentId}`;
-    const current = statusMap.get(key) || 'pending';
+    const currentEntry = statusMap.get(key);
+    const current = currentEntry?.status || 'pending';
     const next = nextStatus(current);
+    const now = new Date().toISOString();
     const entry: StatusEntry = {
       courseId: course.id,
       studentId,
       experimentId,
       status: next,
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
     };
     setStatus(entry);
     setStatusMap(prev => {
       const m = new Map(prev);
-      m.set(key, next);
+      m.set(key, { status: next, updatedAt: now });
       return m;
     });
   };
