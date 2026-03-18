@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { Course, Student, Experiment } from '@/lib/types';
 import { addCourse } from '@/lib/store';
 import { ArrowLeft, Plus, Trash2, UserPlus, FlaskConical } from 'lucide-react';
+import { BulkStudentUpload } from '@/components/BulkStudentUpload';
 
 export default function CreateCourse() {
   const navigate = useNavigate();
