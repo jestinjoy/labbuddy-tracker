@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCourse, updateCourse, getStatuses, setStatus, deleteCourse } from '@/lib/store';
 import { ExperimentStatus, nextStatus, StatusEntry, Student, Experiment } from '@/lib/types';
@@ -24,6 +24,17 @@ export default function CourseView() {
   const [newStudentRoll, setNewStudentRoll] = useState('');
   const [newExpTitle, setNewExpTitle] = useState('');
   const [newExpDesc, setNewExpDesc] = useState('');
+
+  const stats = useMemo(() => {
+    if (!course) return { total: 0, pending: 0, completed: 0, submitted: 0 };
+    const total = course.students.length * course.experiments.length;
+    let completed = 0, submitted = 0;
+    statusMap.forEach(v => {
+      if (v === 'completed') completed++;
+      if (v === 'submitted') submitted++;
+    });
+    return { total, pending: total - completed - submitted, completed, submitted };
+  }, [statusMap, course]);
 
   if (!course) {
     return (
@@ -51,16 +62,6 @@ export default function CourseView() {
       return m;
     });
   };
-
-  const stats = useMemo(() => {
-    const total = course.students.length * course.experiments.length;
-    let completed = 0, submitted = 0;
-    statusMap.forEach(v => {
-      if (v === 'completed') completed++;
-      if (v === 'submitted') submitted++;
-    });
-    return { total, pending: total - completed - submitted, completed, submitted };
-  }, [statusMap, course.students.length, course.experiments.length]);
 
   const handleAddStudent = () => {
     if (!newStudentName.trim()) return;
@@ -134,7 +135,6 @@ export default function CourseView() {
           <span className="font-mono-display text-xs font-bold text-primary tracking-tight">{course.code}</span>
           <h1 className="text-foreground font-medium text-lg leading-tight">{course.name}</h1>
         </div>
-        {/* Stats */}
         <div className="flex gap-4 mt-2 text-xs">
           <span className="text-muted-foreground">{stats.total} total</span>
           <span className="text-status-pending">{stats.pending} pending</span>
@@ -146,7 +146,6 @@ export default function CourseView() {
       {/* Manage Panel */}
       {showManage && (
         <div className="border-b border-border px-4 py-4 bg-card space-y-4">
-          {/* Add Student */}
           <div>
             <h3 className="status-label text-muted-foreground mb-2 flex items-center gap-1.5"><UserPlus size={11} /> Add Student</h3>
             <div className="flex gap-2">
@@ -158,7 +157,6 @@ export default function CourseView() {
               <button onClick={handleAddStudent} className="bg-primary text-primary-foreground rounded px-2 py-2"><Plus size={14} /></button>
             </div>
           </div>
-          {/* Add Experiment */}
           <div>
             <h3 className="status-label text-muted-foreground mb-2 flex items-center gap-1.5"><FlaskConical size={11} /> Add Experiment</h3>
             <div className="flex gap-2">
@@ -170,7 +168,6 @@ export default function CourseView() {
             <input value={newExpDesc} onChange={e => setNewExpDesc(e.target.value)} placeholder="Description (optional)"
               className="w-full mt-1.5 bg-background border border-border rounded px-2 py-2 text-xs text-muted-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary" />
           </div>
-          {/* Delete Course */}
           <button onClick={handleDeleteCourse} className="flex items-center gap-1.5 text-destructive text-xs hover:underline">
             <Trash2 size={12} /> Delete Course
           </button>
@@ -189,11 +186,8 @@ export default function CourseView() {
       ) : (
         <div className="flex-1 overflow-auto scrollbar-thin">
           <div className="inline-flex min-w-full">
-            {/* Sticky student column */}
             <div className="sticky left-0 z-10 bg-background border-r border-border">
-              {/* Header spacer */}
               <div className="h-12 border-b border-border" />
-              {/* Student rows */}
               {course.students.map(student => (
                 <div key={student.id} className="h-16 flex items-center px-3 border-b border-border min-w-[140px] group">
                   <div className="truncate">
@@ -209,17 +203,12 @@ export default function CourseView() {
                 </div>
               ))}
             </div>
-
-            {/* Experiment columns */}
             <div className="flex flex-col">
-              {/* Experiment headers */}
               <div className="flex border-b border-border h-12 sticky top-0 z-10 bg-background">
                 {course.experiments.map(exp => (
                   <div key={exp.id} className="w-16 flex-shrink-0 flex flex-col items-center justify-center px-1 group relative">
                     <span className="font-mono-display text-[10px] font-bold text-primary">{exp.shortCode}</span>
-                    {exp.title && (
-                      <span className="text-[8px] text-muted-foreground truncate max-w-full">{exp.title}</span>
-                    )}
+                    {exp.title && <span className="text-[8px] text-muted-foreground truncate max-w-full">{exp.title}</span>}
                     {showManage && (
                       <button onClick={() => handleRemoveExperiment(exp.id)}
                         className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 text-destructive bg-background rounded-full p-0.5">
@@ -229,8 +218,6 @@ export default function CourseView() {
                   </div>
                 ))}
               </div>
-
-              {/* Status cells */}
               {course.students.map(student => (
                 <div key={student.id} className="flex h-16 border-b border-border">
                   {course.experiments.map(exp => (
@@ -248,7 +235,6 @@ export default function CourseView() {
         </div>
       )}
 
-      {/* Legend */}
       <div className="border-t border-border px-4 py-2 flex items-center justify-center gap-6 text-[10px]">
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm border-2 border-status-pending" /> PENDING</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-status-completed/20 border-2 border-status-completed" /> DONE</span>
