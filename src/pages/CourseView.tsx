@@ -25,6 +25,7 @@ export default function CourseView() {
   const [newStudentRoll, setNewStudentRoll] = useState('');
   const [newExpTitle, setNewExpTitle] = useState('');
   const [newExpDesc, setNewExpDesc] = useState('');
+  const [dragExpId, setDragExpId] = useState<string | null>(null);
 
   const stats = useMemo(() => {
     if (!course) return { total: 0, pending: 0, completed: 0, submitted: 0 };
@@ -112,6 +113,20 @@ export default function CourseView() {
     const updated = { ...course, experiments: course.experiments.filter(e => e.id !== expId) };
     updateCourse(updated);
     setCourse(updated);
+  };
+
+  const handleExpDrop = (targetExpId: string) => {
+    if (!dragExpId || dragExpId === targetExpId) return;
+    const exps = [...course.experiments];
+    const fromIdx = exps.findIndex(e => e.id === dragExpId);
+    const toIdx = exps.findIndex(e => e.id === targetExpId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const [moved] = exps.splice(fromIdx, 1);
+    exps.splice(toIdx, 0, moved);
+    const updated = { ...course, experiments: exps };
+    updateCourse(updated);
+    setCourse(updated);
+    setDragExpId(null);
   };
 
   return (
@@ -216,7 +231,14 @@ export default function CourseView() {
             <div className="flex flex-col">
               <div className="flex border-b border-border h-12 sticky top-0 z-10 bg-background">
                 {course.experiments.map(exp => (
-                  <div key={exp.id} className="w-16 flex-shrink-0 flex flex-col items-center justify-center px-1 group relative">
+                  <div key={exp.id}
+                    className={`w-16 flex-shrink-0 flex flex-col items-center justify-center px-1 group relative ${showManage ? 'cursor-grab active:cursor-grabbing' : ''} ${dragExpId === exp.id ? 'opacity-40' : ''}`}
+                    draggable={showManage}
+                    onDragStart={() => showManage && setDragExpId(exp.id)}
+                    onDragOver={e => { if (showManage) e.preventDefault(); }}
+                    onDrop={() => showManage && handleExpDrop(exp.id)}
+                    onDragEnd={() => setDragExpId(null)}
+                  >
                     <span className="font-mono-display text-[10px] font-bold text-primary">{exp.shortCode}</span>
                     {exp.title && <span className="text-[8px] text-muted-foreground truncate max-w-full">{exp.title}</span>}
                     {showManage && (
