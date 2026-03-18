@@ -115,6 +115,20 @@ export default function CourseView() {
     setCourse(updated);
   };
 
+  const handleExpDrop = (targetExpId: string) => {
+    if (!dragExpId || dragExpId === targetExpId) return;
+    const exps = [...course.experiments];
+    const fromIdx = exps.findIndex(e => e.id === dragExpId);
+    const toIdx = exps.findIndex(e => e.id === targetExpId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const [moved] = exps.splice(fromIdx, 1);
+    exps.splice(toIdx, 0, moved);
+    const updated = { ...course, experiments: exps };
+    updateCourse(updated);
+    setCourse(updated);
+    setDragExpId(null);
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
