@@ -232,10 +232,16 @@ export default function CourseView() {
                 <div key={student.id} className="flex h-16 border-b border-border">
                   {course.experiments.map(exp => (
                     <div key={exp.id} className="w-16 flex-shrink-0 flex items-center justify-center">
-                      <StatusCell
-                        status={statusMap.get(`${student.id}_${exp.id}`) || 'pending'}
-                        onToggle={() => handleToggle(student.id, exp.id)}
-                      />
+                      {(() => {
+                        const entry = statusMap.get(`${student.id}_${exp.id}`);
+                        return (
+                          <StatusCell
+                            status={entry?.status || 'pending'}
+                            updatedAt={entry?.updatedAt}
+                            onToggle={() => handleToggle(student.id, exp.id)}
+                          />
+                        );
+                      })()}
                     </div>
                   ))}
                 </div>
