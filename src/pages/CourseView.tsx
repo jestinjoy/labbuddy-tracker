@@ -231,7 +231,14 @@ export default function CourseView() {
             <div className="flex flex-col">
               <div className="flex border-b border-border h-12 sticky top-0 z-10 bg-background">
                 {course.experiments.map(exp => (
-                  <div key={exp.id} className="w-16 flex-shrink-0 flex flex-col items-center justify-center px-1 group relative">
+                  <div key={exp.id}
+                    className={`w-16 flex-shrink-0 flex flex-col items-center justify-center px-1 group relative ${showManage ? 'cursor-grab active:cursor-grabbing' : ''} ${dragExpId === exp.id ? 'opacity-40' : ''}`}
+                    draggable={showManage}
+                    onDragStart={() => showManage && setDragExpId(exp.id)}
+                    onDragOver={e => { if (showManage) e.preventDefault(); }}
+                    onDrop={() => showManage && handleExpDrop(exp.id)}
+                    onDragEnd={() => setDragExpId(null)}
+                  >
                     <span className="font-mono-display text-[10px] font-bold text-primary">{exp.shortCode}</span>
                     {exp.title && <span className="text-[8px] text-muted-foreground truncate max-w-full">{exp.title}</span>}
                     {showManage && (
