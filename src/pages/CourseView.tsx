@@ -12,10 +12,10 @@ export default function CourseView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [course, setCourse] = useState(() => getCourse(id!));
-  const [statusMap, setStatusMap] = useState<Map<string, ExperimentStatus>>(() => {
-    const map = new Map<string, ExperimentStatus>();
+  const [statusMap, setStatusMap] = useState<Map<string, { status: ExperimentStatus; updatedAt?: string }>>(() => {
+    const map = new Map<string, { status: ExperimentStatus; updatedAt?: string }>();
     getStatuses().filter(s => s.courseId === id).forEach(s => {
-      map.set(`${s.studentId}_${s.experimentId}`, s.status);
+      map.set(`${s.studentId}_${s.experimentId}`, { status: s.status, updatedAt: s.updatedAt });
     });
     return map;
   });
@@ -31,8 +31,8 @@ export default function CourseView() {
     const total = course.students.length * course.experiments.length;
     let completed = 0, submitted = 0;
     statusMap.forEach(v => {
-      if (v === 'completed') completed++;
-      if (v === 'submitted') submitted++;
+      if (v.status === 'completed') completed++;
+      if (v.status === 'submitted') submitted++;
     });
     return { total, pending: total - completed - submitted, completed, submitted };
   }, [statusMap, course]);
@@ -47,19 +47,21 @@ export default function CourseView() {
 
   const handleToggle = (studentId: string, experimentId: string) => {
     const key = `${studentId}_${experimentId}`;
-    const current = statusMap.get(key) || 'pending';
+    const currentEntry = statusMap.get(key);
+    const current = currentEntry?.status || 'pending';
     const next = nextStatus(current);
+    const now = new Date().toISOString();
     const entry: StatusEntry = {
       courseId: course.id,
       studentId,
       experimentId,
       status: next,
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
     };
     setStatus(entry);
     setStatusMap(prev => {
       const m = new Map(prev);
-      m.set(key, next);
+      m.set(key, { status: next, updatedAt: now });
       return m;
     });
   };
@@ -230,10 +232,16 @@ export default function CourseView() {
                 <div key={student.id} className="flex h-16 border-b border-border">
                   {course.experiments.map(exp => (
                     <div key={exp.id} className="w-16 flex-shrink-0 flex items-center justify-center">
-                      <StatusCell
-                        status={statusMap.get(`${student.id}_${exp.id}`) || 'pending'}
-                        onToggle={() => handleToggle(student.id, exp.id)}
-                      />
+                      {(() => {
+                        const entry = statusMap.get(`${student.id}_${exp.id}`);
+                        return (
+                          <StatusCell
+                            status={entry?.status || 'pending'}
+                            updatedAt={entry?.updatedAt}
+                            onToggle={() => handleToggle(student.id, exp.id)}
+                          />
+                        );
+                      })()}
                     </div>
                   ))}
                 </div>

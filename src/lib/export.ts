@@ -8,11 +8,17 @@ function getStatusLabel(status: ExperimentStatus): string {
   return status === 'pending' ? 'Pending' : status === 'completed' ? 'Completed' : 'Submitted';
 }
 
+function formatDate(iso?: string): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+}
+
 function buildMatrix(course: Course) {
   const statuses = getStatuses().filter(s => s.courseId === course.id);
-  const statusMap = new Map<string, ExperimentStatus>();
+  const statusMap = new Map<string, StatusEntry>();
   statuses.forEach(s => {
-    statusMap.set(`${s.studentId}_${s.experimentId}`, s.status);
+    statusMap.set(`${s.studentId}_${s.experimentId}`, s);
   });
 
   const headers = ['Roll No', 'Student Name', ...course.experiments.map(e => e.shortCode)];
@@ -20,8 +26,11 @@ function buildMatrix(course: Course) {
     student.rollNumber,
     student.name,
     ...course.experiments.map(exp => {
-      const status = statusMap.get(`${student.id}_${exp.id}`) || 'pending';
-      return getStatusLabel(status);
+      const entry = statusMap.get(`${student.id}_${exp.id}`);
+      const status = entry?.status || 'pending';
+      const label = getStatusLabel(status);
+      const date = entry?.updatedAt ? formatDate(entry.updatedAt) : '';
+      return status === 'pending' ? label : `${label}\n${date}`;
     })
   ]);
 
@@ -30,30 +39,40 @@ function buildMatrix(course: Course) {
 
 export function exportPDF(course: Course) {
   const { headers, rows } = buildMatrix(course);
-  const doc = new jsPDF({ orientation: rows[0]?.length > 6 ? 'landscape' : 'portrait' });
+  const expCount = course.experiments.length;
+  // Always landscape for many experiments
+  const doc = new jsPDF({ orientation: expCount > 5 ? 'landscape' : 'portrait' });
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.text(`${course.code} — ${course.name}`, 14, 20);
-  doc.setFontSize(10);
+  doc.setFontSize(14);
+  doc.text(`${course.code} — ${course.name}`, 14, 15);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 28);
-  doc.text(`Students: ${course.students.length} | Experiments: ${course.experiments.length}`, 14, 34);
+  doc.text(`Generated: ${new Date().toLocaleDateString()}  |  Students: ${course.students.length}  |  Experiments: ${expCount}`, 14, 22);
+
+  // Dynamic font sizing based on experiment count
+  const fontSize = expCount > 15 ? 5 : expCount > 10 ? 6 : expCount > 6 ? 7 : 8;
+  const cellPadding = expCount > 15 ? 1.5 : expCount > 10 ? 2 : 3;
 
   autoTable(doc, {
     head: [headers],
     body: rows,
-    startY: 40,
-    styles: { fontSize: 8, cellPadding: 3 },
-    headStyles: { fillColor: [0, 122, 255], textColor: 255 },
+    startY: 28,
+    styles: { fontSize, cellPadding, overflow: 'linebreak', lineWidth: 0.1 },
+    headStyles: { fillColor: [0, 122, 255], textColor: 255, fontSize: Math.max(fontSize, 5), halign: 'center' },
+    columnStyles: {
+      0: { cellWidth: expCount > 15 ? 14 : 20, halign: 'center' },
+      1: { cellWidth: expCount > 15 ? 25 : 35 },
+    },
     alternateRowStyles: { fillColor: [240, 240, 240] },
     didParseCell: (data) => {
       if (data.section === 'body' && data.column.index >= 2) {
-        const val = data.cell.raw as string;
-        if (val === 'Completed') {
+        const val = (data.cell.raw as string) || '';
+        data.cell.styles.halign = 'center';
+        if (val.startsWith('Completed')) {
           data.cell.styles.textColor = [16, 185, 129];
           data.cell.styles.fontStyle = 'bold';
-        } else if (val === 'Submitted') {
+        } else if (val.startsWith('Submitted')) {
           data.cell.styles.textColor = [245, 158, 11];
           data.cell.styles.fontStyle = 'bold';
         } else {
@@ -69,6 +88,8 @@ export function exportPDF(course: Course) {
 export function exportExcel(course: Course) {
   const { headers, rows } = buildMatrix(course);
   const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  // Set column widths
+  ws['!cols'] = [{ wch: 10 }, { wch: 20 }, ...course.experiments.map(() => ({ wch: 16 }))];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, course.code);
   XLSX.writeFile(wb, `${course.code}_${new Date().toISOString().split('T')[0]}.xlsx`);
