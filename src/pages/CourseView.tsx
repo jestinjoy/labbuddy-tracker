@@ -148,7 +148,14 @@ export default function CourseView() {
       {showManage && (
         <div className="border-b border-border px-4 py-4 bg-card space-y-4">
           <div>
-            <h3 className="status-label text-muted-foreground mb-2 flex items-center gap-1.5"><UserPlus size={11} /> Add Student</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="status-label text-muted-foreground flex items-center gap-1.5"><UserPlus size={11} /> Add Student</h3>
+              <BulkStudentUpload onStudentsAdded={(newStudents) => {
+                const updated = { ...course, students: [...course.students, ...newStudents] };
+                updateCourse(updated);
+                setCourse(updated);
+              }} />
+            </div>
             <div className="flex gap-2">
               <input value={newStudentRoll} onChange={e => setNewStudentRoll(e.target.value)} placeholder="Roll#"
                 className="w-16 bg-background border border-border rounded px-2 py-2 text-xs text-foreground placeholder:text-muted-foreground font-mono-display tabular focus:outline-none focus:border-primary" />
