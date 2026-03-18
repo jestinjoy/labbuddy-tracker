@@ -25,6 +25,7 @@ export default function CourseView() {
   const [newStudentRoll, setNewStudentRoll] = useState('');
   const [newExpTitle, setNewExpTitle] = useState('');
   const [newExpDesc, setNewExpDesc] = useState('');
+  const [dragExpId, setDragExpId] = useState<string | null>(null);
 
   const stats = useMemo(() => {
     if (!course) return { total: 0, pending: 0, completed: 0, submitted: 0 };
