@@ -12,10 +12,10 @@ export default function CourseView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [course, setCourse] = useState(() => getCourse(id!));
-  const [statusMap, setStatusMap] = useState<Map<string, { status: ExperimentStatus; updatedAt?: string }>>(() => {
-    const map = new Map<string, { status: ExperimentStatus; updatedAt?: string }>();
+  const [statusMap, setStatusMap] = useState<Map<string, { status: ExperimentStatus; updatedAt?: string; completedAt?: string }>>(() => {
+    const map = new Map<string, { status: ExperimentStatus; updatedAt?: string; completedAt?: string }>();
     getStatuses().filter(s => s.courseId === id).forEach(s => {
-      map.set(`${s.studentId}_${s.experimentId}`, { status: s.status, updatedAt: s.updatedAt });
+      map.set(`${s.studentId}_${s.experimentId}`, { status: s.status, updatedAt: s.updatedAt, completedAt: s.completedAt });
     });
     return map;
   });
