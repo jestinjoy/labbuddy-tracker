@@ -12,10 +12,10 @@ export default function CourseView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [course, setCourse] = useState(() => getCourse(id!));
-  const [statusMap, setStatusMap] = useState<Map<string, { status: ExperimentStatus; updatedAt?: string }>>(() => {
-    const map = new Map<string, { status: ExperimentStatus; updatedAt?: string }>();
+  const [statusMap, setStatusMap] = useState<Map<string, { status: ExperimentStatus; updatedAt?: string; completedAt?: string }>>(() => {
+    const map = new Map<string, { status: ExperimentStatus; updatedAt?: string; completedAt?: string }>();
     getStatuses().filter(s => s.courseId === id).forEach(s => {
-      map.set(`${s.studentId}_${s.experimentId}`, { status: s.status, updatedAt: s.updatedAt });
+      map.set(`${s.studentId}_${s.experimentId}`, { status: s.status, updatedAt: s.updatedAt, completedAt: s.completedAt });
     });
     return map;
   });
@@ -52,17 +52,19 @@ export default function CourseView() {
     const current = currentEntry?.status || 'pending';
     const next = nextStatus(current);
     const now = new Date().toISOString();
+    const completedAt = next === 'completed' ? now : next === 'submitted' ? currentEntry?.completedAt : undefined;
     const entry: StatusEntry = {
       courseId: course.id,
       studentId,
       experimentId,
       status: next,
       updatedAt: now,
+      completedAt,
     };
     setStatus(entry);
     setStatusMap(prev => {
       const m = new Map(prev);
-      m.set(key, { status: next, updatedAt: now });
+      m.set(key, { status: next, updatedAt: now, completedAt });
       return m;
     });
   };
