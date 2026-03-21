@@ -48,13 +48,21 @@ export function exportPDF(course: Course) {
   const expCount = course.experiments.length;
   // Always landscape for many experiments
   const doc = new jsPDF({ orientation: expCount > 5 ? 'landscape' : 'portrait' });
+  const pageWidth = doc.internal.pageSize.getWidth();
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  doc.text(`${course.code} — ${course.name}`, 14, 15);
+  doc.setFontSize(12);
+  doc.text("St. George's College Aruvithura", pageWidth / 2, 12, { align: 'center' });
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Generated: ${new Date().toLocaleDateString()}  |  Students: ${course.students.length}  |  Experiments: ${expCount}`, 14, 22);
+  doc.text('Department of Computer Application', pageWidth / 2, 17, { align: 'center' });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text(`${course.code} — ${course.name}`, pageWidth / 2, 24, { align: 'center' });
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Report Date: ${new Date().toLocaleDateString()}  |  Students: ${course.students.length}  |  Experiments: ${expCount}`, pageWidth / 2, 29, { align: 'center' });
 
   // Dynamic font sizing based on experiment count
   const fontSize = expCount > 15 ? 5 : expCount > 10 ? 6 : expCount > 6 ? 7 : 8;
@@ -63,7 +71,7 @@ export function exportPDF(course: Course) {
   autoTable(doc, {
     head: [headers],
     body: rows,
-    startY: 28,
+    startY: 34,
     styles: { fontSize, cellPadding, overflow: 'linebreak', lineWidth: 0.1 },
     headStyles: { fillColor: [0, 122, 255], textColor: 255, fontSize: Math.max(fontSize, 5), halign: 'center' },
     columnStyles: {
