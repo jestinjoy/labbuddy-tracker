@@ -29,8 +29,14 @@ function buildMatrix(course: Course) {
       const entry = statusMap.get(`${student.id}_${exp.id}`);
       const status = entry?.status || 'pending';
       const label = getStatusLabel(status);
+      if (status === 'pending') return label;
+      if (status === 'submitted') {
+        const completedDate = entry?.completedAt ? formatDate(entry.completedAt) : '';
+        const submittedDate = entry?.updatedAt ? formatDate(entry.updatedAt) : '';
+        return `Done: ${completedDate}\nSub: ${submittedDate}`;
+      }
       const date = entry?.updatedAt ? formatDate(entry.updatedAt) : '';
-      return status === 'pending' ? label : `${label}\n${date}`;
+      return `${label}\n${date}`;
     })
   ]);
 

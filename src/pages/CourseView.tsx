@@ -52,17 +52,19 @@ export default function CourseView() {
     const current = currentEntry?.status || 'pending';
     const next = nextStatus(current);
     const now = new Date().toISOString();
+    const completedAt = next === 'completed' ? now : next === 'submitted' ? currentEntry?.completedAt : undefined;
     const entry: StatusEntry = {
       courseId: course.id,
       studentId,
       experimentId,
       status: next,
       updatedAt: now,
+      completedAt,
     };
     setStatus(entry);
     setStatusMap(prev => {
       const m = new Map(prev);
-      m.set(key, { status: next, updatedAt: now });
+      m.set(key, { status: next, updatedAt: now, completedAt });
       return m;
     });
   };
