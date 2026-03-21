@@ -71,7 +71,7 @@ export function exportPDF(course: Course) {
   autoTable(doc, {
     head: [headers],
     body: rows,
-    startY: 28,
+    startY: 34,
     styles: { fontSize, cellPadding, overflow: 'linebreak', lineWidth: 0.1 },
     headStyles: { fillColor: [0, 122, 255], textColor: 255, fontSize: Math.max(fontSize, 5), halign: 'center' },
     columnStyles: {
