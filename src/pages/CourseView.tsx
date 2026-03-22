@@ -256,13 +256,32 @@ export default function CourseView() {
                 <div key={student.id} className="flex h-16 border-b border-border">
                   {course.experiments.map(exp => (
                     <div key={exp.id} className="w-16 flex-shrink-0 flex items-center justify-center">
-                      {(() => {
+                    {(() => {
                         const entry = statusMap.get(`${student.id}_${exp.id}`);
                         return (
                           <StatusCell
                             status={entry?.status || 'pending'}
                             updatedAt={entry?.updatedAt}
+                            completedAt={entry?.completedAt}
                             onToggle={() => handleToggle(student.id, exp.id)}
+                            onManualEdit={(data) => {
+                              const now = new Date().toISOString();
+                              const statusEntry: import('@/lib/types').StatusEntry = {
+                                courseId: course.id,
+                                studentId: student.id,
+                                experimentId: exp.id,
+                                status: data.status,
+                                updatedAt: data.status === 'submitted' ? (data.submittedAt || now) : (data.completedAt || now),
+                                completedAt: data.completedAt,
+                              };
+                              setStatus(statusEntry);
+                              const key = `${student.id}_${exp.id}`;
+                              setStatusMap(prev => {
+                                const m = new Map(prev);
+                                m.set(key, { status: data.status, updatedAt: statusEntry.updatedAt, completedAt: data.completedAt });
+                                return m;
+                              });
+                            }}
                           />
                         );
                       })()}
