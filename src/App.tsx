@@ -15,14 +15,14 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/create" element={<CreateCourse />} />
-          <Route path="/course/:id" element={<CourseView />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+<BrowserRouter basename="/labbuddy-tracker">
+  <Routes>
+    <Route path="/" element={<Dashboard />} />
+    <Route path="/create" element={<CreateCourse />} />
+    <Route path="/course/:id" element={<CourseView />} />
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+</BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
