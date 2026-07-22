@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getCourse, updateCourse, getStatuses, setStatus, deleteCourse } from '@/lib/store';
 import { ExperimentStatus, nextStatus, StatusEntry, Student, Experiment } from '@/lib/types';
 import { StatusCell } from '@/components/StatusCell';
+import { DetailDialog } from '@/components/DetailDialog';
 import { exportPDF, exportExcel } from '@/lib/export';
 import { ArrowLeft, FileDown, FileSpreadsheet, Trash2, Plus, UserPlus, FlaskConical, Settings } from 'lucide-react';
 import { BulkStudentUpload } from '@/components/BulkStudentUpload';
@@ -26,6 +27,8 @@ export default function CourseView() {
   const [newExpTitle, setNewExpTitle] = useState('');
   const [newExpDesc, setNewExpDesc] = useState('');
   const [dragExpId, setDragExpId] = useState<string | null>(null);
+  const [detailStudent, setDetailStudent] = useState<Student | null>(null);
+  const [detailExperiment, setDetailExperiment] = useState<Experiment | null>(null);
 
   const stats = useMemo(() => {
     if (!course) return { total: 0, pending: 0, completed: 0, submitted: 0 };
@@ -212,53 +215,59 @@ export default function CourseView() {
         </div>
       ) : (
         <div className="flex-1 overflow-auto scrollbar-thin">
-          <div className="inline-flex min-w-full">
-            <div className="sticky left-0 z-10 bg-background border-r border-border">
-              <div className="h-12 border-b border-border" />
-              {course.students.map(student => (
-                <div key={student.id} className="h-16 flex items-center px-3 border-b border-border min-w-[140px] group">
-                  <div className="truncate">
-                    <div className="font-mono-display text-[10px] text-muted-foreground tabular">{student.rollNumber}</div>
-                    <div className="text-sm text-foreground truncate">{student.name}</div>
-                  </div>
-                  {showManage && (
-                    <button onClick={() => handleRemoveStudent(student.id)}
-                      className="ml-auto opacity-0 group-hover:opacity-100 text-destructive cell-transition">
-                      <Trash2 size={12} />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-col">
-              <div className="flex border-b border-border h-12 sticky top-0 z-10 bg-background">
+          <table className="border-collapse">
+            <thead>
+              <tr>
+                <th className="sticky top-0 left-0 z-30 bg-background border-b border-r border-border h-12 min-w-[140px] p-0" />
                 {course.experiments.map(exp => (
-                  <div key={exp.id}
-                    className={`w-16 flex-shrink-0 flex flex-col items-center justify-center px-1 group relative ${showManage ? 'cursor-grab active:cursor-grabbing' : ''} ${dragExpId === exp.id ? 'opacity-40' : ''}`}
+                  <th key={exp.id}
+                    className={`sticky top-0 z-20 bg-background border-b border-border h-12 w-16 p-0 ${showManage ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${dragExpId === exp.id ? 'opacity-40' : ''}`}
                     draggable={showManage}
                     onDragStart={() => showManage && setDragExpId(exp.id)}
                     onDragOver={e => { if (showManage) e.preventDefault(); }}
                     onDrop={() => showManage && handleExpDrop(exp.id)}
                     onDragEnd={() => setDragExpId(null)}
+                    onClick={() => !showManage && setDetailExperiment(exp)}
                   >
-                    <span className="font-mono-display text-[10px] font-bold text-primary">{exp.shortCode}</span>
-                    {exp.title && <span className="text-[8px] text-muted-foreground truncate max-w-full">{exp.title}</span>}
-                    {showManage && (
-                      <button onClick={() => handleRemoveExperiment(exp.id)}
-                        className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 text-destructive bg-background rounded-full p-0.5">
-                        <Trash2 size={10} />
-                      </button>
-                    )}
-                  </div>
+                    <div className="flex flex-col items-center justify-center px-1 group relative h-full">
+                      <span className="font-mono-display text-[10px] font-bold text-primary">{exp.shortCode}</span>
+                      {exp.title && <span className="text-[8px] text-muted-foreground truncate max-w-[60px]">{exp.title}</span>}
+                      {showManage && (
+                        <button onClick={(e) => { e.stopPropagation(); handleRemoveExperiment(exp.id); }}
+                          className="absolute -top-1 -right-1 text-destructive bg-background rounded-full p-0.5">
+                          <Trash2 size={10} />
+                        </button>
+                      )}
+                    </div>
+                  </th>
                 ))}
-              </div>
+              </tr>
+            </thead>
+            <tbody>
               {course.students.map(student => (
-                <div key={student.id} className="flex h-16 border-b border-border">
-                  {course.experiments.map(exp => (
-                    <div key={exp.id} className="w-16 flex-shrink-0 flex items-center justify-center">
-                    {(() => {
-                        const entry = statusMap.get(`${student.id}_${exp.id}`);
-                        return (
+                <tr key={student.id}>
+                  <th className="sticky left-0 z-10 bg-background border-b border-r border-border h-16 min-w-[140px] p-0 text-left font-normal">
+                    <div
+                      className="flex items-center px-3 h-full group cursor-pointer hover:bg-accent/30 cell-transition"
+                      onClick={() => !showManage && setDetailStudent(student)}
+                    >
+                      <div className="truncate">
+                        <div className="font-mono-display text-[10px] text-muted-foreground tabular">{student.rollNumber}</div>
+                        <div className="text-sm text-foreground truncate">{student.name}</div>
+                      </div>
+                      {showManage && (
+                        <button onClick={(e) => { e.stopPropagation(); handleRemoveStudent(student.id); }}
+                          className="ml-auto text-destructive">
+                          <Trash2 size={12} />
+                        </button>
+                      )}
+                    </div>
+                  </th>
+                  {course.experiments.map(exp => {
+                    const entry = statusMap.get(`${student.id}_${exp.id}`);
+                    return (
+                      <td key={exp.id} className="border-b border-border w-16 h-16 p-0">
+                        <div className="flex items-center justify-center h-full">
                           <StatusCell
                             status={entry?.status || 'pending'}
                             updatedAt={entry?.updatedAt}
@@ -266,7 +275,7 @@ export default function CourseView() {
                             onToggle={() => handleToggle(student.id, exp.id)}
                             onManualEdit={(data) => {
                               const now = new Date().toISOString();
-                              const statusEntry: import('@/lib/types').StatusEntry = {
+                              const statusEntry: StatusEntry = {
                                 courseId: course.id,
                                 studentId: student.id,
                                 experimentId: exp.id,
@@ -283,16 +292,30 @@ export default function CourseView() {
                               });
                             }}
                           />
-                        );
-                      })()}
-                    </div>
-                  ))}
-                </div>
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
               ))}
-            </div>
-          </div>
+            </tbody>
+          </table>
         </div>
       )}
+
+      <DetailDialog
+        open={!!detailStudent}
+        onOpenChange={(o) => !o && setDetailStudent(null)}
+        title={detailStudent?.name || ''}
+        subtitle={detailStudent ? `Roll ${detailStudent.rollNumber}` : ''}
+      />
+      <DetailDialog
+        open={!!detailExperiment}
+        onOpenChange={(o) => !o && setDetailExperiment(null)}
+        title={detailExperiment?.title || ''}
+        subtitle={detailExperiment?.shortCode}
+        description={detailExperiment?.description}
+      />
 
       <div className="border-t border-border px-4 py-2 flex items-center justify-center gap-6 text-[10px]">
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm border-2 border-status-pending" /> PENDING</span>
