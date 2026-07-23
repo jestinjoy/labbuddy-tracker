@@ -44,7 +44,7 @@ function buildMatrix(course: Course) {
 }
 
 export function exportPDF(course: Course) {
-  const { headers, rows } = buildMatrix(course);
+  const { rows } = buildMatrix(course);
   const expCount = course.experiments.length;
   // Always landscape for many experiments
   const doc = new jsPDF({ orientation: expCount > 5 ? 'landscape' : 'portrait' });
@@ -68,12 +68,18 @@ export function exportPDF(course: Course) {
   const fontSize = expCount > 15 ? 5 : expCount > 10 ? 6 : expCount > 6 ? 7 : 8;
   const cellPadding = expCount > 15 ? 1.5 : expCount > 10 ? 2 : 3;
 
+  const headers = [
+    'Roll No',
+    'Student Name',
+    ...course.experiments.map(e => e.shortCode + (e.title ? `\n${e.title}` : ''))
+  ];
+
   autoTable(doc, {
     head: [headers],
     body: rows,
     startY: 34,
     styles: { fontSize, cellPadding, overflow: 'linebreak', lineWidth: 0.1 },
-    headStyles: { fillColor: [0, 122, 255], textColor: 255, fontSize: Math.max(fontSize, 5), halign: 'center' },
+    headStyles: { fillColor: [0, 122, 255], textColor: 255, fontSize: Math.max(fontSize, 5), halign: 'center', valign: 'middle' },
     columnStyles: {
       0: { cellWidth: expCount > 15 ? 14 : 20, halign: 'center' },
       1: { cellWidth: expCount > 15 ? 25 : 35 },
