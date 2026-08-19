@@ -5,7 +5,7 @@ import { ExperimentStatus, nextStatus, StatusEntry, Student, Experiment } from '
 import { StatusCell } from '@/components/StatusCell';
 import { DetailDialog } from '@/components/DetailDialog';
 import { exportPDF, exportExcel } from '@/lib/export';
-import { ArrowLeft, FileDown, FileSpreadsheet, Trash2, Plus, UserPlus, FlaskConical, Settings, Lock, LockOpen } from 'lucide-react';
+import { ArrowLeft, FileDown, FileSpreadsheet, Trash2, Plus, UserPlus, FlaskConical, Settings, Lock, LockOpen, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { BulkStudentUpload } from '@/components/BulkStudentUpload';
 import { v4 as uuid } from 'uuid';
 
@@ -32,6 +32,10 @@ export default function CourseView() {
   const [detailStudent, setDetailStudent] = useState<Student | null>(null);
   const [detailExperiment, setDetailExperiment] = useState<Experiment | null>(null);
 
+  type SortKey = 'name' | 'roll' | 'progress';
+  type SortDir = 'asc' | 'desc';
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'name', dir: 'asc' });
+
   const stats = useMemo(() => {
     if (!course) return { total: 0, pending: 0, completed: 0, submitted: 0 };
     const total = course.students.length * course.experiments.length;
@@ -42,6 +46,46 @@ export default function CourseView() {
     });
     return { total, pending: total - completed - submitted, completed, submitted };
   }, [statusMap, course]);
+
+  const studentProgress = useMemo(() => {
+    if (!course) return new Map<string, number>();
+    const map = new Map<string, number>();
+    for (const student of course.students) {
+      let done = 0;
+      for (const exp of course.experiments) {
+        const s = statusMap.get(`${student.id}_${exp.id}`)?.status;
+        if (s === 'completed' || s === 'submitted') done++;
+      }
+      map.set(student.id, course.experiments.length ? done / course.experiments.length : 0);
+    }
+    return map;
+  }, [statusMap, course]);
+
+  const sortedStudents = useMemo(() => {
+    if (!course) return [];
+    const list = [...course.students];
+    list.sort((a, b) => {
+      let cmp = 0;
+      if (sort.key === 'name') {
+        cmp = a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+      } else if (sort.key === 'roll') {
+        cmp = a.rollNumber.localeCompare(b.rollNumber, undefined, { numeric: true });
+      } else if (sort.key === 'progress') {
+        cmp = (studentProgress.get(a.id) || 0) - (studentProgress.get(b.id) || 0);
+      }
+      return sort.dir === 'asc' ? cmp : -cmp;
+    });
+    return list;
+  }, [course, sort, studentProgress]);
+
+  const toggleSort = (key: SortKey) => {
+    setSort(prev => prev.key === key ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' });
+  };
+
+  const SortIcon = ({ k }: { k: SortKey }) => {
+    if (sort.key !== k) return <ArrowUpDown size={10} className="text-muted-foreground/40" />;
+    return sort.dir === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />;
+  };
 
   if (!course) {
     return (
@@ -229,7 +273,29 @@ export default function CourseView() {
           <table className="border-collapse">
             <thead>
               <tr>
-                <th className="sticky top-0 left-0 z-30 bg-background border-b border-r border-border h-12 min-w-[140px] p-0" />
+                <th className="sticky top-0 left-0 z-30 bg-background border-b border-r border-border h-12 min-w-[140px] p-0">
+                  <div className="flex items-center justify-between h-full px-3">
+                    <button
+                      onClick={() => toggleSort('name')}
+                      className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
+                    >
+                      Name <SortIcon k="name" />
+                    </button>
+                    <button
+                      onClick={() => toggleSort('roll')}
+                      className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
+                    >
+                      Roll <SortIcon k="roll" />
+                    </button>
+                    <button
+                      onClick={() => toggleSort('progress')}
+                      className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
+                      title="Sort by completion progress"
+                    >
+                      % <SortIcon k="progress" />
+                    </button>
+                  </div>
+                </th>
                 {course.experiments.map(exp => (
                   <th key={exp.id}
                     className={`sticky top-0 z-20 bg-background border-b border-border h-12 w-16 p-0 ${showManage ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${dragExpId === exp.id ? 'opacity-40' : ''}`}
@@ -255,22 +321,26 @@ export default function CourseView() {
               </tr>
             </thead>
             <tbody>
-              {course.students.map(student => (
+              {sortedStudents.map(student => (
                 <tr key={student.id}>
                   <th className="sticky left-0 z-10 bg-background border-b border-r border-border h-16 min-w-[140px] p-0 text-left font-normal">
                     <div
                       className="flex items-center px-3 h-full group cursor-pointer hover:bg-accent/30 cell-transition"
                       onClick={() => !showManage && setDetailStudent(student)}
                     >
-                      <div className="truncate">
+                      <div className="truncate flex-1">
                         <div className="font-mono-display text-[10px] text-muted-foreground tabular">{student.rollNumber}</div>
                         <div className="text-sm text-foreground truncate">{student.name}</div>
                       </div>
-                      {showManage && (
+                      {showManage ? (
                         <button onClick={(e) => { e.stopPropagation(); handleRemoveStudent(student.id); }}
-                          className="ml-auto text-destructive">
+                          className="ml-2 text-destructive">
                           <Trash2 size={12} />
                         </button>
+                      ) : (
+                        <div className="ml-2 text-[9px] text-muted-foreground tabular">
+                          {Math.round((studentProgress.get(student.id) || 0) * 100)}%
+                        </div>
                       )}
                     </div>
                   </th>
