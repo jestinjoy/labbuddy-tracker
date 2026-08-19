@@ -32,6 +32,10 @@ export default function CourseView() {
   const [detailStudent, setDetailStudent] = useState<Student | null>(null);
   const [detailExperiment, setDetailExperiment] = useState<Experiment | null>(null);
 
+  type SortKey = 'name' | 'roll' | 'progress';
+  type SortDir = 'asc' | 'desc';
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'name', dir: 'asc' });
+
   const stats = useMemo(() => {
     if (!course) return { total: 0, pending: 0, completed: 0, submitted: 0 };
     const total = course.students.length * course.experiments.length;
