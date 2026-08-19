@@ -281,6 +281,8 @@ export default function CourseView() {
                         <div className="flex items-center justify-center h-full">
                           <StatusCell
                             status={entry?.status || 'pending'}
+                            locked={locked}
+
                             updatedAt={entry?.updatedAt}
                             completedAt={entry?.completedAt}
                             onToggle={() => handleToggle(student.id, exp.id)}
