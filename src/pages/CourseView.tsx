@@ -328,18 +328,19 @@ export default function CourseView() {
                       className="flex items-center px-3 h-full group cursor-pointer hover:bg-accent/30 cell-transition"
                       onClick={() => !showManage && setDetailStudent(student)}
                     >
-                      <div className="truncate">
+                      <div className="truncate flex-1">
                         <div className="font-mono-display text-[10px] text-muted-foreground tabular">{student.rollNumber}</div>
                         <div className="text-sm text-foreground truncate">{student.name}</div>
                       </div>
-                      <div className="ml-auto text-[9px] text-muted-foreground tabular">
-                        {Math.round((studentProgress.get(student.id) || 0) * 100)}%
-                      </div>
-                      {showManage && (
+                      {showManage ? (
                         <button onClick={(e) => { e.stopPropagation(); handleRemoveStudent(student.id); }}
-                          className="ml-auto text-destructive">
+                          className="ml-2 text-destructive">
                           <Trash2 size={12} />
                         </button>
+                      ) : (
+                        <div className="ml-2 text-[9px] text-muted-foreground tabular">
+                          {Math.round((studentProgress.get(student.id) || 0) * 100)}%
+                        </div>
                       )}
                     </div>
                   </th>
