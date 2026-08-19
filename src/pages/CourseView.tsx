@@ -273,7 +273,29 @@ export default function CourseView() {
           <table className="border-collapse">
             <thead>
               <tr>
-                <th className="sticky top-0 left-0 z-30 bg-background border-b border-r border-border h-12 min-w-[140px] p-0" />
+                <th className="sticky top-0 left-0 z-30 bg-background border-b border-r border-border h-12 min-w-[140px] p-0">
+                  <div className="flex items-center justify-between h-full px-3">
+                    <button
+                      onClick={() => toggleSort('name')}
+                      className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
+                    >
+                      Name <SortIcon k="name" />
+                    </button>
+                    <button
+                      onClick={() => toggleSort('roll')}
+                      className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
+                    >
+                      Roll <SortIcon k="roll" />
+                    </button>
+                    <button
+                      onClick={() => toggleSort('progress')}
+                      className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
+                      title="Sort by completion progress"
+                    >
+                      % <SortIcon k="progress" />
+                    </button>
+                  </div>
+                </th>
                 {course.experiments.map(exp => (
                   <th key={exp.id}
                     className={`sticky top-0 z-20 bg-background border-b border-border h-12 w-16 p-0 ${showManage ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${dragExpId === exp.id ? 'opacity-40' : ''}`}
