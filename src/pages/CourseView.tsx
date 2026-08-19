@@ -145,9 +145,18 @@ export default function CourseView() {
             <ArrowLeft size={16} />
           </button>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setLocked(l => !l)}
+              className={`flex items-center gap-1.5 px-2 py-1.5 rounded border text-[10px] uppercase tracking-widest cell-transition ${locked ? 'border-border text-muted-foreground' : 'border-status-completed text-status-completed bg-status-completed/10'}`}
+              title={locked ? 'Editing locked — tap to unlock status changes' : 'Editing unlocked — tap to lock'}
+            >
+              {locked ? <Lock size={13} /> : <LockOpen size={13} />}
+              {locked ? 'Locked' : 'Editing'}
+            </button>
             <button onClick={() => setShowManage(!showManage)} className="p-2 text-muted-foreground hover:text-foreground cell-transition">
               <Settings size={18} />
             </button>
+
             <button onClick={() => exportPDF(course)} className="p-2 text-muted-foreground hover:text-foreground cell-transition" title="Export PDF">
               <FileDown size={18} />
             </button>
