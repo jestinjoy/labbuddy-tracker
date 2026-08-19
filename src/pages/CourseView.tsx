@@ -273,26 +273,28 @@ export default function CourseView() {
           <table className="border-collapse">
             <thead>
               <tr>
-                <th className="sticky top-0 left-0 z-30 bg-background border-b border-r border-border h-12 min-w-[140px] p-0">
-                  <div className="flex items-center justify-between h-full px-3">
-                    <button
-                      onClick={() => toggleSort('name')}
-                      className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
-                    >
-                      Name <SortIcon k="name" />
-                    </button>
-                    <button
-                      onClick={() => toggleSort('roll')}
-                      className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
-                    >
-                      Roll <SortIcon k="roll" />
-                    </button>
+                <th className="sticky top-0 left-0 z-30 bg-background border-b border-r border-border h-12 min-w-[110px] p-0">
+                  <div className="flex flex-col justify-center h-full px-2 gap-0.5">
+                    <div className="flex items-center justify-between">
+                      <button
+                        onClick={() => toggleSort('name')}
+                        className="flex items-center gap-0.5 text-[9px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
+                      >
+                        Name <SortIcon k="name" />
+                      </button>
+                      <button
+                        onClick={() => toggleSort('roll')}
+                        className="flex items-center gap-0.5 text-[9px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
+                      >
+                        Roll <SortIcon k="roll" />
+                      </button>
+                    </div>
                     <button
                       onClick={() => toggleSort('progress')}
-                      className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
+                      className="flex items-center justify-center gap-0.5 text-[9px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
                       title="Sort by completion progress"
                     >
-                      % <SortIcon k="progress" />
+                      Progress <SortIcon k="progress" />
                     </button>
                   </div>
                 </th>
@@ -323,22 +325,22 @@ export default function CourseView() {
             <tbody>
               {sortedStudents.map(student => (
                 <tr key={student.id}>
-                  <th className="sticky left-0 z-10 bg-background border-b border-r border-border h-16 min-w-[140px] p-0 text-left font-normal">
+                  <th className="sticky left-0 z-10 bg-background border-b border-r border-border h-16 min-w-[110px] p-0 text-left font-normal">
                     <div
-                      className="flex items-center px-3 h-full group cursor-pointer hover:bg-accent/30 cell-transition"
+                      className="flex items-center px-2 h-full group cursor-pointer hover:bg-accent/30 cell-transition"
                       onClick={() => !showManage && setDetailStudent(student)}
                     >
-                      <div className="truncate flex-1">
-                        <div className="font-mono-display text-[10px] text-muted-foreground tabular">{student.rollNumber}</div>
-                        <div className="text-sm text-foreground truncate">{student.name}</div>
+                      <div className="truncate flex-1 min-w-0">
+                        <div className="font-mono-display text-[9px] text-muted-foreground tabular">{student.rollNumber}</div>
+                        <div className="text-xs text-foreground truncate">{student.name}</div>
                       </div>
                       {showManage ? (
                         <button onClick={(e) => { e.stopPropagation(); handleRemoveStudent(student.id); }}
-                          className="ml-2 text-destructive">
+                          className="ml-1.5 text-destructive shrink-0">
                           <Trash2 size={12} />
                         </button>
                       ) : (
-                        <div className="ml-2 text-[9px] text-muted-foreground tabular">
+                        <div className="ml-1.5 text-[9px] text-muted-foreground tabular shrink-0">
                           {Math.round((studentProgress.get(student.id) || 0) * 100)}%
                         </div>
                       )}
