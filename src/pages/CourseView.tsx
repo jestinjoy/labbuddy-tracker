@@ -5,7 +5,7 @@ import { ExperimentStatus, nextStatus, StatusEntry, Student, Experiment } from '
 import { StatusCell } from '@/components/StatusCell';
 import { DetailDialog } from '@/components/DetailDialog';
 import { exportPDF, exportExcel } from '@/lib/export';
-import { ArrowLeft, FileDown, FileSpreadsheet, Trash2, Plus, UserPlus, FlaskConical, Settings, Lock, LockOpen } from 'lucide-react';
+import { ArrowLeft, FileDown, FileSpreadsheet, Trash2, Plus, UserPlus, FlaskConical, Settings, Lock, LockOpen, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { BulkStudentUpload } from '@/components/BulkStudentUpload';
 import { v4 as uuid } from 'uuid';
 
