@@ -35,7 +35,7 @@ function formatShortDate(iso?: string): string {
   return `${d.getDate()}/${d.getMonth() + 1}`;
 }
 
-export function StatusCell({ status, onToggle, onManualEdit, updatedAt, completedAt }: StatusCellProps) {
+export function StatusCell({ status, onToggle, onManualEdit, updatedAt, completedAt, locked = false }: StatusCellProps) {
   const config = statusConfig[status];
   const Icon = config.icon;
   const dateStr = formatShortDate(updatedAt);
@@ -56,10 +56,10 @@ export function StatusCell({ status, onToggle, onManualEdit, updatedAt, complete
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
-    if (!didLongPress.current) {
+    if (!didLongPress.current && !locked) {
       onToggle();
     }
-  }, [onToggle]);
+  }, [onToggle, locked]);
 
   const handlePointerLeave = useCallback(() => {
     if (longPressTimer.current) {
@@ -75,11 +75,14 @@ export function StatusCell({ status, onToggle, onManualEdit, updatedAt, complete
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerLeave}
         onContextMenu={e => { e.preventDefault(); setDialogOpen(true); }}
-        className={`w-14 h-14 flex flex-col items-center justify-center border-2 rounded cell-transition ${config.className}`}
-        whileTap={{ scale: 0.9 }}
+        className={`w-14 h-14 flex flex-col items-center justify-center border-2 rounded cell-transition ${config.className} ${locked ? 'cursor-default' : ''}`}
+        whileTap={locked ? undefined : { scale: 0.9 }}
         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-        title={`Status: ${status}. Tap to change, long-press to edit dates.`}
+        title={locked
+          ? `Status: ${status}. Locked — unlock to tap-change, or long-press to edit.`
+          : `Status: ${status}. Tap to change, long-press to edit dates.`}
       >
+
         <Icon size={18} strokeWidth={2.5} />
         {dateStr && status !== 'pending' && (
           <span className="text-[7px] leading-none mt-0.5 opacity-70 font-mono-display">{dateStr}</span>
