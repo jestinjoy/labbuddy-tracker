@@ -273,26 +273,28 @@ export default function CourseView() {
           <table className="border-collapse">
             <thead>
               <tr>
-                <th className="sticky top-0 left-0 z-30 bg-background border-b border-r border-border h-12 min-w-[140px] p-0">
-                  <div className="flex items-center justify-between h-full px-3">
-                    <button
-                      onClick={() => toggleSort('name')}
-                      className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
-                    >
-                      Name <SortIcon k="name" />
-                    </button>
-                    <button
-                      onClick={() => toggleSort('roll')}
-                      className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
-                    >
-                      Roll <SortIcon k="roll" />
-                    </button>
+                <th className="sticky top-0 left-0 z-30 bg-background border-b border-r border-border h-12 min-w-[110px] p-0">
+                  <div className="flex flex-col justify-center h-full px-2 gap-0.5">
+                    <div className="flex items-center justify-between">
+                      <button
+                        onClick={() => toggleSort('name')}
+                        className="flex items-center gap-0.5 text-[9px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
+                      >
+                        Name <SortIcon k="name" />
+                      </button>
+                      <button
+                        onClick={() => toggleSort('roll')}
+                        className="flex items-center gap-0.5 text-[9px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
+                      >
+                        Roll <SortIcon k="roll" />
+                      </button>
+                    </div>
                     <button
                       onClick={() => toggleSort('progress')}
-                      className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
+                      className="flex items-center justify-center gap-0.5 text-[9px] uppercase tracking-widest text-muted-foreground hover:text-foreground cell-transition"
                       title="Sort by completion progress"
                     >
-                      % <SortIcon k="progress" />
+                      Progress <SortIcon k="progress" />
                     </button>
                   </div>
                 </th>
