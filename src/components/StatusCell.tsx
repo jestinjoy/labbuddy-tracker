@@ -10,7 +10,9 @@ interface StatusCellProps {
   onManualEdit?: (data: { status: ExperimentStatus; completedAt?: string; submittedAt?: string }) => void;
   updatedAt?: string;
   completedAt?: string;
+  locked?: boolean;
 }
+
 
 const statusConfig = {
   pending: {
