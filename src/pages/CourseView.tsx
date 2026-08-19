@@ -5,7 +5,7 @@ import { ExperimentStatus, nextStatus, StatusEntry, Student, Experiment } from '
 import { StatusCell } from '@/components/StatusCell';
 import { DetailDialog } from '@/components/DetailDialog';
 import { exportPDF, exportExcel } from '@/lib/export';
-import { ArrowLeft, FileDown, FileSpreadsheet, Trash2, Plus, UserPlus, FlaskConical, Settings } from 'lucide-react';
+import { ArrowLeft, FileDown, FileSpreadsheet, Trash2, Plus, UserPlus, FlaskConical, Settings, Lock, LockOpen } from 'lucide-react';
 import { BulkStudentUpload } from '@/components/BulkStudentUpload';
 import { v4 as uuid } from 'uuid';
 
@@ -22,6 +22,8 @@ export default function CourseView() {
   });
 
   const [showManage, setShowManage] = useState(false);
+  const [locked, setLocked] = useState(true);
+
   const [newStudentName, setNewStudentName] = useState('');
   const [newStudentRoll, setNewStudentRoll] = useState('');
   const [newExpTitle, setNewExpTitle] = useState('');
@@ -143,9 +145,18 @@ export default function CourseView() {
             <ArrowLeft size={16} />
           </button>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setLocked(l => !l)}
+              className={`flex items-center gap-1.5 px-2 py-1.5 rounded border text-[10px] uppercase tracking-widest cell-transition ${locked ? 'border-border text-muted-foreground' : 'border-status-completed text-status-completed bg-status-completed/10'}`}
+              title={locked ? 'Editing locked — tap to unlock status changes' : 'Editing unlocked — tap to lock'}
+            >
+              {locked ? <Lock size={13} /> : <LockOpen size={13} />}
+              {locked ? 'Locked' : 'Editing'}
+            </button>
             <button onClick={() => setShowManage(!showManage)} className="p-2 text-muted-foreground hover:text-foreground cell-transition">
               <Settings size={18} />
             </button>
+
             <button onClick={() => exportPDF(course)} className="p-2 text-muted-foreground hover:text-foreground cell-transition" title="Export PDF">
               <FileDown size={18} />
             </button>
@@ -270,6 +281,8 @@ export default function CourseView() {
                         <div className="flex items-center justify-center h-full">
                           <StatusCell
                             status={entry?.status || 'pending'}
+                            locked={locked}
+
                             updatedAt={entry?.updatedAt}
                             completedAt={entry?.completedAt}
                             onToggle={() => handleToggle(student.id, exp.id)}

@@ -44,66 +44,119 @@ function buildMatrix(course: Course) {
 }
 
 export function exportPDF(course: Course) {
-  const { rows } = buildMatrix(course);
+  const statuses = getStatuses().filter(s => s.courseId === course.id);
+  const statusMap = new Map<string, StatusEntry>();
+  statuses.forEach(s => statusMap.set(`${s.studentId}_${s.experimentId}`, s));
+
   const expCount = course.experiments.length;
-  // Always landscape for many experiments
-  const doc = new jsPDF({ orientation: expCount > 5 ? 'landscape' : 'portrait' });
+  const doc = new jsPDF({ orientation: expCount > 4 ? 'landscape' : 'portrait' });
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text("St. George's College Aruvithura", pageWidth / 2, 12, { align: 'center' });
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Department of Computer Application', pageWidth / 2, 17, { align: 'center' });
+  // Keep columns per page limited so text stays large & legible on a phone (WhatsApp)
+  const perPage = expCount > 4 ? 10 : expCount;
+  const chunks: typeof course.experiments[] = [];
+  for (let i = 0; i < expCount; i += perPage) {
+    chunks.push(course.experiments.slice(i, i + perPage));
+  }
+  if (chunks.length === 0) chunks.push([]);
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.text(`${course.code} — ${course.name}`, pageWidth / 2, 24, { align: 'center' });
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Report Date: ${new Date().toLocaleDateString()}  |  Students: ${course.students.length}  |  Experiments: ${expCount}`, pageWidth / 2, 29, { align: 'center' });
+  const drawHeader = (partLabel: string) => {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(15);
+    doc.setTextColor(17, 24, 39);
+    doc.text("St. George's College Aruvithura", pageWidth / 2, 13, { align: 'center' });
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Department of Computer Application', pageWidth / 2, 19, { align: 'center' });
 
-  // Dynamic font sizing based on experiment count
-  const fontSize = expCount > 15 ? 5 : expCount > 10 ? 6 : expCount > 6 ? 7 : 8;
-  const cellPadding = expCount > 15 ? 1.5 : expCount > 10 ? 2 : 3;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(21, 94, 117);
+    doc.text(`${course.code} — ${course.name}`, pageWidth / 2, 26, { align: 'center' });
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(75, 85, 99);
+    doc.text(
+      `Report Date: ${new Date().toLocaleDateString()}  |  Students: ${course.students.length}  |  Experiments: ${expCount}${partLabel}`,
+      pageWidth / 2, 31, { align: 'center' }
+    );
+  };
 
-  const headers = [
-    'Roll No',
-    'Student Name',
-    ...course.experiments.map(e => e.shortCode + (e.title ? `\n${e.title}` : ''))
-  ];
+  chunks.forEach((exps, chunkIdx) => {
+    if (chunkIdx > 0) doc.addPage();
+    drawHeader(chunks.length > 1 ? `  |  Part ${chunkIdx + 1} of ${chunks.length}` : '');
 
-  autoTable(doc, {
-    head: [headers],
-    body: rows,
-    startY: 34,
-    styles: { fontSize, cellPadding, overflow: 'linebreak', lineWidth: 0.1 },
-    headStyles: { fillColor: [0, 122, 255], textColor: 255, fontSize: Math.max(fontSize, 5), halign: 'center', valign: 'middle' },
-    columnStyles: {
-      0: { cellWidth: expCount > 15 ? 14 : 20, halign: 'center' },
-      1: { cellWidth: expCount > 15 ? 25 : 35 },
-    },
-    alternateRowStyles: { fillColor: [240, 240, 240] },
-    didParseCell: (data) => {
-      if (data.section === 'body' && data.column.index >= 2) {
-        const val = (data.cell.raw as string) || '';
-        data.cell.styles.halign = 'center';
-        if (val.startsWith('Completed')) {
-          data.cell.styles.textColor = [16, 185, 129];
-          data.cell.styles.fontStyle = 'bold';
-        } else if (val.startsWith('Submitted')) {
-          data.cell.styles.textColor = [245, 158, 11];
-          data.cell.styles.fontStyle = 'bold';
-        } else {
-          data.cell.styles.textColor = [150, 150, 150];
+    const headers = [
+      'Roll No',
+      'Student Name',
+      ...exps.map(e => e.shortCode + (e.title ? `\n${e.title}` : ''))
+    ];
+
+    const rows = course.students.map(student => [
+      student.rollNumber,
+      student.name,
+      ...exps.map(exp => {
+        const entry = statusMap.get(`${student.id}_${exp.id}`);
+        const status = entry?.status || 'pending';
+        if (status === 'pending') return 'Pending';
+        if (status === 'submitted') {
+          return `Completed: ${formatDate(entry?.completedAt)}\nSubmitted: ${formatDate(entry?.updatedAt)}`;
+        }
+        return `Completed\n${formatDate(entry?.updatedAt)}`;
+      })
+    ]);
+
+    autoTable(doc, {
+      head: [headers],
+      body: rows,
+      startY: 36,
+      styles: {
+        fontSize: 8,
+        cellPadding: 2.2,
+        overflow: 'linebreak',
+        lineWidth: 0.2,
+        lineColor: [203, 213, 225],
+        textColor: [17, 24, 39],
+        valign: 'middle',
+      },
+      headStyles: {
+        fillColor: [15, 76, 129],
+        textColor: 255,
+        fontSize: 8.5,
+        fontStyle: 'bold',
+        halign: 'center',
+        valign: 'middle',
+      },
+      columnStyles: {
+        0: { cellWidth: 18, halign: 'center', fontStyle: 'bold' },
+        1: { cellWidth: 38 },
+      },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.column.index >= 2) {
+          const val = (data.cell.raw as string) || '';
+          data.cell.styles.halign = 'center';
+          if (val.startsWith('Completed:')) {
+            // Submitted (both dates)
+            data.cell.styles.fillColor = [254, 243, 199];
+            data.cell.styles.textColor = [146, 64, 14];
+            data.cell.styles.fontStyle = 'bold';
+          } else if (val.startsWith('Completed')) {
+            data.cell.styles.fillColor = [220, 252, 231];
+            data.cell.styles.textColor = [21, 105, 60];
+            data.cell.styles.fontStyle = 'bold';
+          } else {
+            data.cell.styles.fillColor = [255, 255, 255];
+            data.cell.styles.textColor = [120, 128, 138];
+          }
         }
       }
-    }
+    });
   });
 
   doc.save(`${course.code}_${new Date().toISOString().split('T')[0]}.pdf`);
 }
+
 
 export function exportExcel(course: Course) {
   const { headers, rows } = buildMatrix(course);
