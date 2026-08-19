@@ -22,6 +22,8 @@ export default function CourseView() {
   });
 
   const [showManage, setShowManage] = useState(false);
+  const [locked, setLocked] = useState(true);
+
   const [newStudentName, setNewStudentName] = useState('');
   const [newStudentRoll, setNewStudentRoll] = useState('');
   const [newExpTitle, setNewExpTitle] = useState('');
