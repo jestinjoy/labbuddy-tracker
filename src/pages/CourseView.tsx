@@ -321,7 +321,7 @@ export default function CourseView() {
               </tr>
             </thead>
             <tbody>
-              {course.students.map(student => (
+              {sortedStudents.map(student => (
                 <tr key={student.id}>
                   <th className="sticky left-0 z-10 bg-background border-b border-r border-border h-16 min-w-[140px] p-0 text-left font-normal">
                     <div
@@ -331,6 +331,9 @@ export default function CourseView() {
                       <div className="truncate">
                         <div className="font-mono-display text-[10px] text-muted-foreground tabular">{student.rollNumber}</div>
                         <div className="text-sm text-foreground truncate">{student.name}</div>
+                      </div>
+                      <div className="ml-auto text-[9px] text-muted-foreground tabular">
+                        {Math.round((studentProgress.get(student.id) || 0) * 100)}%
                       </div>
                       {showManage && (
                         <button onClick={(e) => { e.stopPropagation(); handleRemoveStudent(student.id); }}
