@@ -47,6 +47,46 @@ export default function CourseView() {
     return { total, pending: total - completed - submitted, completed, submitted };
   }, [statusMap, course]);
 
+  const studentProgress = useMemo(() => {
+    if (!course) return new Map<string, number>();
+    const map = new Map<string, number>();
+    for (const student of course.students) {
+      let done = 0;
+      for (const exp of course.experiments) {
+        const s = statusMap.get(`${student.id}_${exp.id}`)?.status;
+        if (s === 'completed' || s === 'submitted') done++;
+      }
+      map.set(student.id, course.experiments.length ? done / course.experiments.length : 0);
+    }
+    return map;
+  }, [statusMap, course]);
+
+  const sortedStudents = useMemo(() => {
+    if (!course) return [];
+    const list = [...course.students];
+    list.sort((a, b) => {
+      let cmp = 0;
+      if (sort.key === 'name') {
+        cmp = a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+      } else if (sort.key === 'roll') {
+        cmp = a.rollNumber.localeCompare(b.rollNumber, undefined, { numeric: true });
+      } else if (sort.key === 'progress') {
+        cmp = (studentProgress.get(a.id) || 0) - (studentProgress.get(b.id) || 0);
+      }
+      return sort.dir === 'asc' ? cmp : -cmp;
+    });
+    return list;
+  }, [course, sort, studentProgress]);
+
+  const toggleSort = (key: SortKey) => {
+    setSort(prev => prev.key === key ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' });
+  };
+
+  const SortIcon = ({ k }: { k: SortKey }) => {
+    if (sort.key !== k) return <ArrowUpDown size={10} className="text-muted-foreground/40" />;
+    return sort.dir === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />;
+  };
+
   if (!course) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">
