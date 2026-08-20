@@ -273,7 +273,7 @@ export default function CourseView() {
           <table className="border-collapse">
             <thead>
               <tr>
-                <th className="sticky top-0 left-0 z-30 bg-background border-b border-r border-border h-12 min-w-[110px] p-0">
+                <th className="sticky top-0 left-0 z-30 bg-background border-b border-r border-border h-12 min-w-[100px] p-0">
                   <div className="flex flex-col justify-center h-full px-2 gap-0.5">
                     <div className="flex items-center justify-between">
                       <button
@@ -325,7 +325,7 @@ export default function CourseView() {
             <tbody>
               {sortedStudents.map(student => (
                 <tr key={student.id}>
-                  <th className="sticky left-0 z-10 bg-background border-b border-r border-border h-16 min-w-[110px] p-0 text-left font-normal">
+                  <th className="sticky left-0 z-10 bg-background border-b border-r border-border h-16 min-w-[100px] p-0 text-left font-normal">
                     <div
                       className="flex items-center px-2 h-full group cursor-pointer hover:bg-accent/30 cell-transition"
                       onClick={() => !showManage && setDetailStudent(student)}
@@ -333,16 +333,17 @@ export default function CourseView() {
                       <div className="truncate flex-1 min-w-0">
                         <div className="font-mono-display text-[9px] text-muted-foreground tabular">{student.rollNumber}</div>
                         <div className="text-xs text-foreground truncate">{student.name}</div>
+                        {!showManage && (
+                          <div className="text-[9px] text-muted-foreground tabular">
+                            {Math.round((studentProgress.get(student.id) || 0) * 100)}%
+                          </div>
+                        )}
                       </div>
-                      {showManage ? (
+                      {showManage && (
                         <button onClick={(e) => { e.stopPropagation(); handleRemoveStudent(student.id); }}
                           className="ml-1.5 text-destructive shrink-0">
                           <Trash2 size={12} />
                         </button>
-                      ) : (
-                        <div className="ml-1.5 text-[9px] text-muted-foreground tabular shrink-0">
-                          {Math.round((studentProgress.get(student.id) || 0) * 100)}%
-                        </div>
                       )}
                     </div>
                   </th>
