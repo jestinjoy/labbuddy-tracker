@@ -406,6 +406,29 @@ export default function CourseView() {
         description={detailExperiment?.description}
       />
 
+      {pendingChange && (() => {
+        const student = course.students.find(s => s.id === pendingChange.studentId);
+        const exp = course.experiments.find(e => e.id === pendingChange.experimentId);
+        const current = statusMap.get(`${pendingChange.studentId}_${pendingChange.experimentId}`)?.status || 'pending';
+        const next = nextStatus(current);
+        return (
+          <Dialog open onOpenChange={(o) => !o && setPendingChange(null)}>
+            <DialogContent className="max-w-xs">
+              <DialogHeader>
+                <DialogTitle className="text-sm">Confirm Change</DialogTitle>
+              </DialogHeader>
+              <p className="text-xs text-muted-foreground">
+                Mark <span className="text-foreground font-medium">{student?.name}</span> — <span className="text-foreground font-medium">{exp?.shortCode}</span> as <span className="capitalize text-primary font-medium">{next}</span>?
+              </p>
+              <div className="flex gap-2 mt-2">
+                <Button variant="outline" className="flex-1 text-xs h-9" onClick={() => setPendingChange(null)}>Cancel</Button>
+                <Button className="flex-1 text-xs h-9" onClick={() => { applyToggle(pendingChange.studentId, pendingChange.experimentId); setPendingChange(null); }}>Confirm</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
+
       <div className="border-t border-border px-4 py-2 flex items-center justify-center gap-6 text-[10px]">
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm border-2 border-status-pending" /> PENDING</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-status-completed/20 border-2 border-status-completed" /> DONE</span>
