@@ -7,6 +7,8 @@ import { DetailDialog } from '@/components/DetailDialog';
 import { exportPDF, exportExcel } from '@/lib/export';
 import { ArrowLeft, FileDown, FileSpreadsheet, Trash2, Plus, UserPlus, FlaskConical, Settings, Lock, LockOpen, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { BulkStudentUpload } from '@/components/BulkStudentUpload';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { v4 as uuid } from 'uuid';
 
 export default function CourseView() {
@@ -31,6 +33,7 @@ export default function CourseView() {
   const [dragExpId, setDragExpId] = useState<string | null>(null);
   const [detailStudent, setDetailStudent] = useState<Student | null>(null);
   const [detailExperiment, setDetailExperiment] = useState<Experiment | null>(null);
+  const [pendingChange, setPendingChange] = useState<{ studentId: string; experimentId: string } | null>(null);
 
   type SortKey = 'name' | 'roll' | 'progress';
   type SortDir = 'asc' | 'desc';
@@ -95,7 +98,7 @@ export default function CourseView() {
     );
   }
 
-  const handleToggle = (studentId: string, experimentId: string) => {
+  const applyToggle = (studentId: string, experimentId: string) => {
     const key = `${studentId}_${experimentId}`;
     const currentEntry = statusMap.get(key);
     const current = currentEntry?.status || 'pending';
@@ -358,7 +361,7 @@ export default function CourseView() {
 
                             updatedAt={entry?.updatedAt}
                             completedAt={entry?.completedAt}
-                            onToggle={() => handleToggle(student.id, exp.id)}
+                            onToggle={() => setPendingChange({ studentId: student.id, experimentId: exp.id })}
                             onManualEdit={(data) => {
                               const now = new Date().toISOString();
                               const statusEntry: StatusEntry = {
@@ -402,6 +405,29 @@ export default function CourseView() {
         subtitle={detailExperiment?.shortCode}
         description={detailExperiment?.description}
       />
+
+      {pendingChange && (() => {
+        const student = course.students.find(s => s.id === pendingChange.studentId);
+        const exp = course.experiments.find(e => e.id === pendingChange.experimentId);
+        const current = statusMap.get(`${pendingChange.studentId}_${pendingChange.experimentId}`)?.status || 'pending';
+        const next = nextStatus(current);
+        return (
+          <Dialog open onOpenChange={(o) => !o && setPendingChange(null)}>
+            <DialogContent className="max-w-xs">
+              <DialogHeader>
+                <DialogTitle className="text-sm">Confirm Change</DialogTitle>
+              </DialogHeader>
+              <p className="text-xs text-muted-foreground">
+                Mark <span className="text-foreground font-medium">{student?.name}</span> — <span className="text-foreground font-medium">{exp?.shortCode}</span> as <span className="capitalize text-primary font-medium">{next}</span>?
+              </p>
+              <div className="flex gap-2 mt-2">
+                <Button variant="outline" className="flex-1 text-xs h-9" onClick={() => setPendingChange(null)}>Cancel</Button>
+                <Button className="flex-1 text-xs h-9" onClick={() => { applyToggle(pendingChange.studentId, pendingChange.experimentId); setPendingChange(null); }}>Confirm</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
 
       <div className="border-t border-border px-4 py-2 flex items-center justify-center gap-6 text-[10px]">
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm border-2 border-status-pending" /> PENDING</span>
