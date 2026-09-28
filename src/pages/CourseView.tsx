@@ -7,6 +7,8 @@ import { DetailDialog } from '@/components/DetailDialog';
 import { exportPDF, exportExcel } from '@/lib/export';
 import { ArrowLeft, FileDown, FileSpreadsheet, Trash2, Plus, UserPlus, FlaskConical, Settings, Lock, LockOpen, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { BulkStudentUpload } from '@/components/BulkStudentUpload';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { v4 as uuid } from 'uuid';
 
 export default function CourseView() {
@@ -31,6 +33,7 @@ export default function CourseView() {
   const [dragExpId, setDragExpId] = useState<string | null>(null);
   const [detailStudent, setDetailStudent] = useState<Student | null>(null);
   const [detailExperiment, setDetailExperiment] = useState<Experiment | null>(null);
+  const [pendingChange, setPendingChange] = useState<{ studentId: string; experimentId: string } | null>(null);
 
   type SortKey = 'name' | 'roll' | 'progress';
   type SortDir = 'asc' | 'desc';
