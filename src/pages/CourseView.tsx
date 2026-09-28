@@ -98,7 +98,7 @@ export default function CourseView() {
     );
   }
 
-  const handleToggle = (studentId: string, experimentId: string) => {
+  const applyToggle = (studentId: string, experimentId: string) => {
     const key = `${studentId}_${experimentId}`;
     const currentEntry = statusMap.get(key);
     const current = currentEntry?.status || 'pending';
@@ -361,7 +361,7 @@ export default function CourseView() {
 
                             updatedAt={entry?.updatedAt}
                             completedAt={entry?.completedAt}
-                            onToggle={() => handleToggle(student.id, exp.id)}
+                            onToggle={() => setPendingChange({ studentId: student.id, experimentId: exp.id })}
                             onManualEdit={(data) => {
                               const now = new Date().toISOString();
                               const statusEntry: StatusEntry = {
